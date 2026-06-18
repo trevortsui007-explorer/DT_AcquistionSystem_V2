@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/DT.DAS.Application/DT.DAS.Application.csproj" />
+    <Project Path="src/DT.DAS.Domain/DT.DAS.Domain.csproj" />
+    <Project Path="src/DT.DAS.Infrastructure/DT.DAS.Infrastructure.csproj" />
+    <Project Path="src/DT.DAS.WebApi/DT.DAS.WebApi.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/DT.DAS.Tests/DT.DAS.Tests.csproj" />
+  </Folder>
+</Solution>
