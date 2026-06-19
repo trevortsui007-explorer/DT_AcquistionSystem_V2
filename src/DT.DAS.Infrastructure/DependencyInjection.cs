@@ -41,6 +41,7 @@ public static class DependencyInjection
             .Bind(configuration.GetSection("DAS:Database"))
             .Validate(x => !string.IsNullOrWhiteSpace(x.DefaultConnectionName), "DAS:Database:DefaultConnectionName is required.")
             .Validate(x => !string.IsNullOrWhiteSpace(x.ConfigTableName), "DAS:Database:ConfigTableName is required.")
+            .Validate(x => !string.IsNullOrWhiteSpace(x.GroupTableName), "DAS:Database:GroupTableName is required.")
             .Validate(x => !string.IsNullOrWhiteSpace(x.GroupConfigTableName), "DAS:Database:GroupConfigTableName is required.")
             .Validate(x => !string.IsNullOrWhiteSpace(x.TaskGroupTableName), "DAS:Database:TaskGroupTableName is required.")
             .Validate(x => !string.IsNullOrWhiteSpace(x.TaskTableName), "DAS:Database:TaskTableName is required.")
@@ -58,6 +59,8 @@ public static class DependencyInjection
     {
         services.AddSingleton<ISqlConnectionFactory, SqlConnectionFactory>();
         services.AddScoped<IFileConfigRepository, FileConfigRepository>();
+        services.AddScoped<IFileConfigGroupRepository, FileConfigGroupRepository>();
+        services.AddScoped<IAcquisitionTaskRepository, AcquisitionTaskRepository>();
         services.AddScoped<IAcquisitionLogRepository, AcquisitionLogRepository>();
         services.AddScoped<IAcquisitionFileStateRepository, AcquisitionFileStateRepository>();
         services.AddScoped<IDataService, SqlDataService>();

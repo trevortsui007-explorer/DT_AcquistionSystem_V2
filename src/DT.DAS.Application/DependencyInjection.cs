@@ -15,6 +15,8 @@ public static class DependencyInjection
     public static IServiceCollection AddDasApplication(this IServiceCollection services)
     {
         services.AddScoped<IFileConfigService, FileConfigService>();
+        services.AddScoped<IFileConfigGroupService, FileConfigGroupService>();
+        services.AddScoped<IAcquisitionTaskService, AcquisitionTaskService>();
         services.AddScoped<IAcquisitionLogService, AcquisitionLogService>();
         services.AddScoped<IAcquisitionFileStateService, AcquisitionFileStateService>();
         services.AddScoped<IDataAcquisitionService, DataAcquisitionService>();
@@ -26,3 +28,5 @@ public static class DependencyInjection
         return services;
     }
 }
+
+
