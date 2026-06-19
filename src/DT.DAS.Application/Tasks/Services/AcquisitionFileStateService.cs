@@ -51,6 +51,23 @@ public sealed class AcquisitionFileStateService : IAcquisitionFileStateService
             : _repository.SealByTaskLogAsync(taskLogId.Trim(), ct);
     }
 
+    public Task<List<AcquisitionFileState>> GetByConfigAndDateRangeAsync(int configId, DateTime startDate, DateTime endDate, CancellationToken ct = default)
+    {
+        if (configId <= 0)
+        {
+            return Task.FromResult(new List<AcquisitionFileState>());
+        }
+
+        var normalizedStart = startDate.Date;
+        var normalizedEnd = endDate.Date;
+        if (normalizedEnd < normalizedStart)
+        {
+            throw new InvalidOperationException("结束日期不能早于开始日期");
+        }
+
+        return _repository.GetByConfigAndDateRangeAsync(configId, normalizedStart, normalizedEnd, ct);
+    }
+
     private static string NormalizeUpdateSource(string? updateSource)
     {
         return string.IsNullOrWhiteSpace(updateSource)
@@ -63,6 +80,7 @@ public sealed class AcquisitionFileStateService : IAcquisitionFileStateService
         return string.Equals(NormalizeUpdateSource(updateSource), FileStateUpdateSources.ManualRepair, StringComparison.Ordinal);
     }
 }
+
 
 
 

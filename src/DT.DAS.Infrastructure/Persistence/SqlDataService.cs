@@ -16,9 +16,10 @@ public sealed class SqlDataService : IDataService
 
     public async Task<DataTable> GetTableSchemaAsync(string tableName, CancellationToken ct = default)
     {
+        var safeTableName = SqlIdentifier.Table(tableName, tableName);
         await using var connection = _connectionFactory.Create();
         await connection.OpenAsync(ct).ConfigureAwait(false);
-        await using var command = new SqlCommand($"SELECT TOP 0 * FROM [{tableName}]", connection);
+        await using var command = new SqlCommand($"SELECT TOP 0 * FROM {safeTableName}", connection);
         await using var reader = await command.ExecuteReaderAsync(CommandBehavior.SchemaOnly | CommandBehavior.KeyInfo, ct).ConfigureAwait(false);
         var table = new DataTable();
         table.Load(reader);
@@ -50,6 +51,7 @@ public sealed class SqlDataService : IDataService
 
     public async Task BulkInsertAsync(DataTable dataTable, string destinationTableName, CancellationToken ct = default)
     {
+        var safeTableName = SqlIdentifier.Table(destinationTableName, destinationTableName);
         if (dataTable.Rows.Count == 0)
         {
             return;
@@ -59,7 +61,7 @@ public sealed class SqlDataService : IDataService
         await connection.OpenAsync(ct).ConfigureAwait(false);
         using var bulkCopy = new SqlBulkCopy(connection, SqlBulkCopyOptions.Default, null)
         {
-            DestinationTableName = $"[{destinationTableName}]",
+            DestinationTableName = safeTableName,
             BatchSize = 50000,
             BulkCopyTimeout = 600
         };
@@ -68,7 +70,8 @@ public sealed class SqlDataService : IDataService
         {
             if (!column.AutoIncrement)
             {
-                bulkCopy.ColumnMappings.Add(column.ColumnName, column.ColumnName);
+                var safeColumnName = SqlIdentifier.RawName(column.ColumnName, column.ColumnName);
+                bulkCopy.ColumnMappings.Add(safeColumnName, safeColumnName);
             }
         }
 
@@ -77,9 +80,10 @@ public sealed class SqlDataService : IDataService
 
     public async Task ExecuteStoredProcedureAsync(string? flag, string procedureName, CancellationToken ct = default)
     {
+        var safeProcedureName = SqlIdentifier.RawName(procedureName, procedureName);
         await using var connection = _connectionFactory.Create();
         await connection.OpenAsync(ct).ConfigureAwait(false);
-        await using var command = new SqlCommand(procedureName, connection)
+        await using var command = new SqlCommand(safeProcedureName, connection)
         {
             CommandType = CommandType.StoredProcedure,
             CommandTimeout = 600
@@ -95,17 +99,26 @@ public sealed class SqlDataService : IDataService
 
     public async Task CreateTableIfNotExistsAsync(string tableName, IEnumerable<ColumnDefinition> columns, CancellationToken ct = default)
     {
-        var columnSql = columns.Select(column =>
+        var safeTableName = SqlIdentifier.Table(tableName, tableName);
+        var rawTableName = SqlIdentifier.RawName(tableName, tableName);
+        var columnList = columns.ToList();
+        if (columnList.Count == 0)
         {
+            throw new InvalidOperationException("列定义不能为空");
+        }
+
+        var columnSql = columnList.Select(column =>
+        {
+            var safeColumnName = SqlIdentifier.Column(column.ColumnName, column.ColumnName);
             var pk = column.IsPrimaryKey ? "PRIMARY KEY IDENTITY(1,1)" : string.Empty;
             var nullable = column.AllowNull ? "NULL" : "NOT NULL";
-            return $"[{column.ColumnName}] {GetSqlType(column.DataType, column.MaxLength)} {pk} {nullable}";
+            return $"{safeColumnName} {GetSqlType(column.DataType, column.MaxLength)} {pk} {nullable}".Trim();
         });
 
         var sql = $"""
-            IF OBJECT_ID('[{tableName}]', 'U') IS NULL
+            IF OBJECT_ID(@TableName, 'U') IS NULL
             BEGIN
-                CREATE TABLE [{tableName}] (
+                CREATE TABLE {safeTableName} (
                     {string.Join(",\n                    ", columnSql)}
                 )
             END
@@ -114,6 +127,7 @@ public sealed class SqlDataService : IDataService
         await using var connection = _connectionFactory.Create();
         await connection.OpenAsync(ct).ConfigureAwait(false);
         await using var command = new SqlCommand(sql, connection);
+        command.Parameters.AddWithValue("@TableName", rawTableName);
         await command.ExecuteNonQueryAsync(ct).ConfigureAwait(false);
     }
 
@@ -154,5 +168,3 @@ public sealed class SqlDataService : IDataService
         return maxLength is > 0 and <= 4000 ? $"NVARCHAR({maxLength.Value})" : "NVARCHAR(MAX)";
     }
 }
-
-

@@ -32,6 +32,28 @@ public sealed class AcquisitionFileStateRepository : IAcquisitionFileStateReposi
         }, cancellationToken: ct)).ConfigureAwait(false);
     }
 
+    public async Task<List<AcquisitionFileState>> GetByConfigAndDateRangeAsync(int configId, DateTime startDate, DateTime endDate, CancellationToken ct = default)
+    {
+        const string sql = """
+            SELECT [Id],[ConfigId],[BusinessDate],[FileName],[FullPath],[DataRowCount],
+                   [LastStartRow],[LastProcessedRows],[LastTaskLogId],[LastStatus],[LastUpdateSource],
+                   [IsSealed],[SealTime],[LastScanTime],[CreateTime],[UpdateTime]
+            FROM [dbo].[DA_AcquisitionFileState]
+            WHERE [ConfigId] = @ConfigId
+              AND [BusinessDate] >= @StartDate
+              AND [BusinessDate] <= @EndDate
+            ORDER BY [BusinessDate] ASC, [FileName] ASC, [UpdateTime] DESC
+            """;
+        await using var connection = _connectionFactory.Create();
+        var rows = await connection.QueryAsync<AcquisitionFileState>(new CommandDefinition(sql, new
+        {
+            ConfigId = configId,
+            StartDate = startDate.Date,
+            EndDate = endDate.Date
+        }, cancellationToken: ct)).ConfigureAwait(false);
+        return rows.ToList();
+    }
+
     public async Task<bool> UpsertSuccessAsync(AcquisitionFileState state, bool allowSealedUpdate, CancellationToken ct = default)
     {
         const string sql = """
@@ -91,4 +113,5 @@ public sealed class AcquisitionFileStateRepository : IAcquisitionFileStateReposi
         return await connection.ExecuteAsync(new CommandDefinition(sql, new { TaskLogId = taskLogId, Now = DateTime.Now }, cancellationToken: ct)).ConfigureAwait(false);
     }
 }
+
 

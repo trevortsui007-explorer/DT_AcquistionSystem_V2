@@ -2,6 +2,10 @@
 using DT.DAS.Application.Acquisition.Services;
 using DT.DAS.Application.Configs;
 using DT.DAS.Application.Configs.Services;
+using DT.DAS.Application.Data;
+using DT.DAS.Application.Data.Services;
+using DT.DAS.Application.Files;
+using DT.DAS.Application.Files.Services;
 using DT.DAS.Application.PostProcessing;
 using DT.DAS.Application.PostProcessing.Services;
 using DT.DAS.Application.Tasks;
@@ -17,6 +21,10 @@ public static class DependencyInjection
         services.AddScoped<IFileConfigService, FileConfigService>();
         services.AddScoped<IFileConfigGroupService, FileConfigGroupService>();
         services.AddScoped<IAcquisitionTaskService, AcquisitionTaskService>();
+        services.AddScoped<IDataMaintenanceService, DataMaintenanceService>();
+        services.AddScoped<IFileAccessService, FileAccessService>();
+        services.AddScoped<IDataPreviewService, DataPreviewService>();
+        services.AddScoped<IFileDiscoveryService, FileDiscoveryService>();
         services.AddScoped<IAcquisitionLogService, AcquisitionLogService>();
         services.AddScoped<IAcquisitionFileStateService, AcquisitionFileStateService>();
         services.AddScoped<IDataAcquisitionService, DataAcquisitionService>();
@@ -28,5 +36,8 @@ public static class DependencyInjection
         return services;
     }
 }
+
+
+
 
 

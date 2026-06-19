@@ -22,12 +22,18 @@ internal static class TestWebApplicationFactory
                     services.RemoveAll<IFileConfigGroupRepository>();
                     services.RemoveAll<IAcquisitionTaskRepository>();
                     services.RemoveAll<IAcquisitionLogRepository>();
-                    services.AddSingleton<IFileConfigRepository>(new InMemoryFileConfigRepository(new AcquisitionConfig { Id = 1, EqName = "EQ-1", IsEnabled = true }));
+                    services.RemoveAll<IAcquisitionFileStateRepository>();
+                    services.RemoveAll<IDataService>();
+                    services.AddSingleton<IFileConfigRepository>(new InMemoryFileConfigRepository(new AcquisitionConfig { Id = 1, EqName = "EQ-1", FilePathPattern = "C:/missing/{yyyy}/{MM}", FileNamePattern = "input_{yyyy}{MM}{dd}", FileType = ".csv", IsEnabled = true }));
                     services.AddSingleton<IFileConfigGroupRepository>(new InMemoryFileConfigGroupRepository());
                     services.AddSingleton<IAcquisitionTaskRepository>(new RecordingAcquisitionTaskRepository());
                     services.AddSingleton<IAcquisitionLogRepository>(new InMemoryAcquisitionLogRepository());
+                    services.AddSingleton<IAcquisitionFileStateRepository>(new InMemoryAcquisitionFileStateRepository());
+                    services.AddSingleton<IDataService>(new RecordingDataService());
                 });
             });
     }
 }
+
+
 
