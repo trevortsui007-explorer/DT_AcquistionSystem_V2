@@ -7,6 +7,8 @@ using DT.DAS.Application.Data.Services;
 using DT.DAS.Application.Files;
 using DT.DAS.Application.Files.Services;
 using DT.DAS.Application.PostProcessing;
+using DT.DAS.Application.Reports;
+using DT.DAS.Application.Reports.Services;
 using DT.DAS.Application.PostProcessing.Services;
 using DT.DAS.Application.Tasks;
 using DT.DAS.Application.Tasks.Services;
@@ -29,6 +31,7 @@ public static class DependencyInjection
         services.AddScoped<IAcquisitionFileStateService, AcquisitionFileStateService>();
         services.AddScoped<IDataAcquisitionService, DataAcquisitionService>();
         services.AddScoped<IAcquisitionExecutionService, AcquisitionExecutionService>();
+        services.AddScoped<IReportExportService, ReportExportService>();
         services.AddScoped<IPostProcessingService, PostProcessingService>();
         services.AddScoped<IPostProcessorResolver, PostProcessorResolver>();
         services.AddScoped<ILogCodeGenerator, LogCodeGenerator>();
@@ -36,6 +39,7 @@ public static class DependencyInjection
         return services;
     }
 }
+
 
 
 

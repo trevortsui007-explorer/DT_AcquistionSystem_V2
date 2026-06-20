@@ -1,6 +1,8 @@
 ﻿using DT.DAS.Application;
 using DT.DAS.Application.Acquisition;
+using DT.DAS.Application.Reports;
 using DT.DAS.Domain.Interfaces;
+using DT.DAS.Infrastructure.Export;
 using DT.DAS.Infrastructure.FileAccess.Providers;
 using DT.DAS.Infrastructure.Jobs;
 using DT.DAS.Infrastructure.Options;
@@ -64,6 +66,10 @@ public static class DependencyInjection
         services.AddScoped<IAcquisitionLogRepository, AcquisitionLogRepository>();
         services.AddScoped<IAcquisitionFileStateRepository, AcquisitionFileStateRepository>();
         services.AddScoped<IDataService, SqlDataService>();
+        services.AddScoped<IReportExportTaskRepository, ReportExportTaskRepository>();
+        services.AddScoped<IReportExportDataProvider, ReportExportDataProvider>();
+        services.AddSingleton<IReportWorkbookWriter, NpoiReportWorkbookWriter>();
+        services.AddSingleton<IReportArchiveService, ReportArchiveService>();
 
         return services;
     }
@@ -93,6 +99,7 @@ public static class DependencyInjection
     private static IServiceCollection AddBackgroundJobs(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<AcquisitionJob>();
+        services.AddScoped<ReportExportJob>();
 
         var hangfireSection = configuration.GetSection("DAS:Hangfire").Get<HangfireOptions>() ?? new HangfireOptions();
         var hangfireConnection = configuration.GetConnectionString(hangfireSection.ConnectionName);
@@ -109,13 +116,18 @@ public static class DependencyInjection
 
             services.AddHangfireServer();
             services.AddScoped<IAcquisitionJobScheduler, HangfireAcquisitionJobScheduler>();
+            services.AddScoped<IReportExportJobScheduler, HangfireReportExportJobScheduler>();
         }
         else
         {
             services.AddScoped<IAcquisitionJobScheduler, NoopAcquisitionJobScheduler>();
+            services.AddScoped<IReportExportJobScheduler, NoopReportExportJobScheduler>();
         }
 
         return services;
     }
 }
+
+
+
 
